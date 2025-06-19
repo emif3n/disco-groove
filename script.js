@@ -15,28 +15,18 @@ const freqs = [
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 const audioCtx = new AudioContext();
 
-const webRoomsWebSocketServerAddr = 'https://nosch.uber.space/web-rooms/';
-
 const scene = document.querySelector("a-scene");
 const status = document.getElementById("status");
 const startBtn = document.getElementById("startBtn");
-const scoreDisplay = document.getElementById("score");
+const scoreDisplay = document.getElementById("scoreDisplayFixed");
 
 const melodies = {
-  easy: [
-    [0, 2, 4, 2],
-    [4, 2, 0, 2],
-    [0, 4, 0, 4],
-  ],
-  medium: [
-    [0, 2, 4, 6, 4],
-    [3, 5, 7, 5, 3],
-    [2, 4, 6, 8, 6, 4],
-  ],
+  easy: [[0, 2, 4, 2], [4, 2, 0, 2], [0, 4, 0, 4]],
+  medium: [[0, 2, 4, 6, 4], [3, 5, 7, 5, 3], [2, 4, 6, 8, 6, 4]],
   hard: [
     [0, 3, 5, 8, 10, 12, 14],
     [1, 4, 6, 9, 11, 13, 15, 13, 11],
-    [2, 4, 7, 9, 11, 14, 12, 10, 8],
+    [2, 4, 7, 9, 11, 14, 12, 10, 8]
   ]
 };
 
@@ -156,61 +146,6 @@ startBtn.addEventListener("click", () => {
   score = 0;
   scoreDisplay.textContent = `Punkte: ${score}`;
   startNextLevel();
-});
-
-const socket = new WebSocket(webRoomsWebSocketServerAddr);
-
-// listen to opening websocket connections
-socket.addEventListener('open', (event) => {
-  sendRequest('*enter-room*', 'disco groove');
-
-  // ping the server regularly with an empty message to prevent the socket from closing
-  setInterval(() => socket.send(''), 30000);
-});
-
-socket.addEventListener("close", (event) => {
-  clientId = null;
-  document.body.classList.add('disconnected');
-});
-
-// listen to messages from server
-socket.addEventListener('message', (event) => {
-  const data = event.data;
-
-  if (data.length > 0) {
-    const incoming = JSON.parse(data);
-    const selector = incoming[0];
-
-    // dispatch incomming messages
-    switch (selector) {
-      case '*client-id*':
-        clientId = incoming[1];
-        startPlaying();
-        break;
-
-      case 'question': {
-        const question = incoming[1];
-        setQuestion(question);
-        responseId = question.responseId;
-        break;
-      }
-
-      case 'reset': {
-        setQuestion(welcomeText);
-        responseId = null;
-        break;
-      }
-
-      case '*error*': {
-        const message = incoming[1];
-        console.warn('server error:', ...message);
-        break;
-      }
-
-      default:
-        break;
-    }
-  }
 });
 
 createTiles();
