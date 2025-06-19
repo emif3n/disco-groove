@@ -1,0 +1,150 @@
+html {
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
+body {
+  position: fixed;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  padding: 40px;
+  margin: 0;
+  font-family: "Avenir Next", Helvetica, sans-serif;
+  background-color: #000;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.light {
+  font-weight: 100;
+}
+
+.small {
+  font-size: 0.8em;
+}
+
+body.disconnected {
+  opacity: 0.333;
+}
+
+#question-container {
+  position: relative;
+  box-sizing: border-box;
+  width: auto;
+  margin: 20px 0 10px 0;
+  text-align: left;
+  font-size: 1.4em;
+  font-weight: 500;
+  line-height: 1.2em;
+  color: #fff;
+}
+
+#answer-container {
+  position: relative;
+  box-sizing: border-box;
+  width: auto;
+  margin: 0;
+  padding: 5px 20px;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 1.2em;
+  line-height: 1.2em;
+  color: #fff;
+}
+
+#answer-container.master {
+  width: 100%
+}
+
+div.answer {
+  position: relative;
+  box-sizing: border-box;
+  width: auto;
+  height: auto;
+  padding: 5px;
+  margin: 5px 0;
+  vertical-align: top;
+}
+
+div.answer.selected {
+  background-color: #007f7f;
+}
+
+div.answer.correct {
+  border-style: solid;
+  border-width: 1px;
+  border-color: #fff;
+}
+
+div.answer.wrong {
+  opacity: 0.5;
+}
+
+div.answer div {
+  display: inline-block;
+}
+
+div.answer div.slider {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0%;
+  height: 100%;
+  background-color: #007f7f;
+  z-index: -1;
+  pointer-events: none;
+}
+
+#info-container {
+  position: absolute;
+  box-sizing: border-box;
+  right: 40px;
+  bottom: 2em;
+  width: auto;
+  margin: 0;
+  padding-left: 10px;
+  text-align: left;
+  font-size: 0.8em;
+  color: #fff;
+}
+
+#button-container {
+  position: absolute;
+  box-sizing: border-box;
+  bottom: 2em;
+}
+
+.button {
+  display: inline-block;
+  position: relative;
+  box-sizing: border-box;
+  left: 20px;
+  height: 2.5em;
+  padding: 0 0.5em;
+  margin-right: 10px;
+  font-size: 0.8em;
+  border-radius: 5px;
+  border-width: 1px;
+  border-style: solid;
+  color: #fff;
+  text-align: center;
+  line-height: 2.2em;
+}
+
+.button:active {
+  background-color: #777;
+}
+
+#correct-answer.button {
+  display: none;
+}
+
+#correct-answer.button.show {
+  display: inline-block;
+}
