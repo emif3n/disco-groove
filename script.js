@@ -1,0 +1,216 @@
+const tileColors = [
+  "#ff6666", "#ffcc66", "#66ff66", "#66ffff",
+  "#6666ff", "#cc66ff", "#ff66cc", "#ff9966",
+  "#99ff66", "#66ffcc", "#6699ff", "#cc66ff",
+  "#ff9999", "#99ccff", "#cccc99", "#66cc99"
+];
+
+const freqs = [
+  261.63, 293.66, 329.63, 349.23,
+  392.00, 440.00, 493.88, 523.25,
+  587.33, 659.25, 698.46, 783.99,
+  830.61, 880.00, 987.77, 1046.50
+];
+
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+const audioCtx = new AudioContext();
+
+const webRoomsWebSocketServerAddr = 'https://nosch.uber.space/web-rooms/';
+
+const scene = document.querySelector("a-scene");
+const status = document.getElementById("status");
+const startBtn = document.getElementById("startBtn");
+const scoreDisplay = document.getElementById("score");
+
+const melodies = {
+  easy: [
+    [0, 2, 4, 2],
+    [4, 2, 0, 2],
+    [0, 4, 0, 4],
+  ],
+  medium: [
+    [0, 2, 4, 6, 4],
+    [3, 5, 7, 5, 3],
+    [2, 4, 6, 8, 6, 4],
+  ],
+  hard: [
+    [0, 3, 5, 8, 10, 12, 14],
+    [1, 4, 6, 9, 11, 13, 15, 13, 11],
+    [2, 4, 7, 9, 11, 14, 12, 10, 8],
+  ]
+};
+
+const levels = ["easy", "medium", "hard"];
+let currentLevel = 0;
+let currentMelody = [];
+let userInput = [];
+let acceptingInput = false;
+let score = 0;
+
+function playTone(freq, duration = 600) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+
+  osc.type = "sine";
+  osc.frequency.value = freq;
+
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  const now = audioCtx.currentTime;
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(0.3, now + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + duration / 1000);
+
+  osc.start(now);
+  osc.stop(now + duration / 1000);
+}
+
+function highlightTile(entity, color = "#ffffff", duration = 400) {
+  const original = entity.getAttribute("color");
+  entity.setAttribute("color", color);
+  setTimeout(() => {
+    entity.setAttribute("color", original);
+  }, duration);
+}
+
+function playMelody(sequence) {
+  let delay = 0;
+  acceptingInput = false;
+  userInput = [];
+  sequence.forEach((index) => {
+    setTimeout(() => {
+      playTone(freqs[index]);
+      const tile = document.querySelector(`[data-index='${index}']`);
+      highlightTile(tile, "#ffffff");
+    }, delay);
+    delay += 600;
+  });
+  setTimeout(() => {
+    acceptingInput = true;
+    status.textContent = "Jetzt bist du dran!";
+  }, delay);
+}
+
+function checkUserInput() {
+  for (let i = 0; i < userInput.length; i++) {
+    if (userInput[i] !== currentMelody[i]) {
+      status.textContent = "Falsch! Versuche es nochmal.";
+      acceptingInput = false;
+      return;
+    }
+  }
+
+  if (userInput.length === currentMelody.length) {
+    status.textContent = "Richtig! 🎉";
+    acceptingInput = false;
+
+    score += 10;
+    scoreDisplay.textContent = `Punkte: ${score}`;
+
+    setTimeout(() => {
+      currentLevel++;
+      if (currentLevel >= levels.length) {
+        currentLevel = 0;
+        status.textContent = "Du hast alle Level geschafft! 🎊";
+        return;
+      }
+      startNextLevel();
+    }, 1500);
+  }
+}
+
+function startNextLevel() {
+  const levelName = levels[currentLevel];
+  const pool = melodies[levelName];
+  currentMelody = pool[Math.floor(Math.random() * pool.length)];
+  status.textContent = `Level: ${levelName.toUpperCase()} `;
+  playMelody(currentMelody);
+}
+
+function createTiles() {
+  for (let i = 0; i < 16; i++) {
+    const x = (i % 4) * 1.2 - 1.8;
+    const z = Math.floor(i / 4) * 1.2 - 1.8;
+    const tile = document.createElement("a-box");
+    tile.setAttribute("position", `${x} 0.1 ${z}`);
+    tile.setAttribute("width", "1");
+    tile.setAttribute("height", "0.2");
+    tile.setAttribute("depth", "1");
+    tile.setAttribute("color", tileColors[i]);
+    tile.setAttribute("data-index", i);
+    tile.setAttribute("class", "tile");
+    tile.addEventListener("click", () => {
+      if (!acceptingInput) return;
+      playTone(freqs[i]);
+      highlightTile(tile, "#ffffff");
+      userInput.push(i);
+      checkUserInput();
+    });
+    scene.appendChild(tile);
+  }
+}
+
+startBtn.addEventListener("click", () => {
+  currentLevel = 0;
+  score = 0;
+  scoreDisplay.textContent = `Punkte: ${score}`;
+  startNextLevel();
+});
+
+const socket = new WebSocket(webRoomsWebSocketServerAddr);
+
+// listen to opening websocket connections
+socket.addEventListener('open', (event) => {
+  sendRequest('*enter-room*', 'disco groove');
+
+  // ping the server regularly with an empty message to prevent the socket from closing
+  setInterval(() => socket.send(''), 30000);
+});
+
+socket.addEventListener("close", (event) => {
+  clientId = null;
+  document.body.classList.add('disconnected');
+});
+
+// listen to messages from server
+socket.addEventListener('message', (event) => {
+  const data = event.data;
+
+  if (data.length > 0) {
+    const incoming = JSON.parse(data);
+    const selector = incoming[0];
+
+    // dispatch incomming messages
+    switch (selector) {
+      case '*client-id*':
+        clientId = incoming[1];
+        startPlaying();
+        break;
+
+      case 'question': {
+        const question = incoming[1];
+        setQuestion(question);
+        responseId = question.responseId;
+        break;
+      }
+
+      case 'reset': {
+        setQuestion(welcomeText);
+        responseId = null;
+        break;
+      }
+
+      case '*error*': {
+        const message = incoming[1];
+        console.warn('server error:', ...message);
+        break;
+      }
+
+      default:
+        break;
+    }
+  }
+});
+
+createTiles();
