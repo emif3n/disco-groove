@@ -1,3 +1,13 @@
+const infoDisplay = document.getElementById('info-display');
+
+// address of the WebSocket server
+const webRoomsWebSocketServerAddr = 'https://nosch.uber.space/web-rooms/';
+
+// variables
+let clientId = null; // client ID sent by web-rooms server when calling 'enter-room'
+let clientCount = 0; // number of clients connected to the same room
+
+
 const tileColors = [
   "#ff6666", "#ffcc66", "#66ff66", "#66ffff",
   "#6666ff", "#cc66ff", "#ff66cc", "#ff9966",
@@ -149,3 +159,83 @@ startBtn.addEventListener("click", () => {
 });
 
 createTiles();
+
+/****************************************************************
+ * websocket communication
+ */
+const socket = new WebSocket(webRoomsWebSocketServerAddr);
+
+// helper function to send requests over websocket to web-room server
+function sendRequest(...message) {
+  const str = JSON.stringify(message);
+  socket.send(str);
+}
+
+// listen to opening websocket connections
+socket.addEventListener('open', (event) => {
+  sendRequest('*enter-room*', 'disco groove');
+  sendRequest('*subscribe-client-count*');
+  sendRequest('*subscribe-client-enter-exit*');
+
+  // ping the server regularly with an empty message to prevent the socket from closing
+  setInterval(() => socket.send(''), 30000);
+});
+
+socket.addEventListener("close", (event) => {
+  clientId = null;
+  document.body.classList.add('disconnected');
+});
+
+// listen to messages from server
+socket.addEventListener('message', (event) => {
+  const data = event.data;
+
+  if (data.length > 0) {
+    const incoming = JSON.parse(data);
+    const selector = incoming[0];
+
+    // dispatch incomming messages
+    switch (selector) {
+      // responds to '*enter-room*'
+      case '*client-id*':
+        clientId = incoming[1];
+        infoDisplay.innerHTML = `#${clientId}/${clientCount}`;
+        start();
+        break;
+
+      // responds to '*subscribe-client-count*'
+      case '*client-count*':
+        clientCount = incoming[1];
+        infoDisplay.innerHTML = `#${clientId}/${clientCount}`;
+        break;
+
+      case '*client-enter*':
+        const enterId = incoming[1];
+        console.log(`client #${enterId} has entered the room`);
+        break;
+
+      case '*client-exit*':
+        const exitId = incoming[1];
+        console.log(`client #${exitId} has left the room`);
+        break;
+
+      // 'hello there' messages sent from other clients
+      case 'hello-there':
+        const otherId = incoming[1];
+        console.log(`client #${otherId} says 'Hello there!'`);
+
+        highlightText(titleDisplay); // highlight screen by others (function defined above)
+        break;
+
+      case '*error*': {
+        const message = incoming[1];
+        console.warn('server error:', ...message);
+        break;
+      }
+
+      default:
+        console.log(`unknown incoming messsage: [${incoming}]`);
+        break;
+    }
+  }
+});
