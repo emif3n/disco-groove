@@ -200,7 +200,7 @@ socket.addEventListener('message', (event) => {
       case '*client-id*':
         clientId = incoming[1];
         infoDisplay.innerHTML = `#${clientId}/${clientCount}`;
-        start();
+        //start();
         break;
 
       // responds to '*subscribe-client-count*'
