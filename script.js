@@ -169,11 +169,12 @@ const socket = new WebSocket(webRoomsWebSocketServerAddr);
 function sendRequest(...message) {
   const str = JSON.stringify(message);
   socket.send(str);
+  console.log("Hi ich funktionier")
 }
 
 // listen to opening websocket connections
 socket.addEventListener('open', (event) => {
-  sendRequest('*enter-room*', 'disco groove');
+  sendRequest('*enter-room*', 'disco-groove');
   sendRequest('*subscribe-client-count*');
   sendRequest('*subscribe-client-enter-exit*');
 
@@ -200,7 +201,7 @@ socket.addEventListener('message', (event) => {
       case '*client-id*':
         clientId = incoming[1];
         infoDisplay.innerHTML = `#${clientId}/${clientCount}`;
-        //start();
+        // start();
         break;
 
       // responds to '*subscribe-client-count*'
@@ -236,7 +237,8 @@ socket.addEventListener('message', (event) => {
       default:
         console.log(`unknown incoming messsage: [${incoming}]`);
         break;
+    
     }
-      console.log(data)
+        console.log(data)
   }
 });
