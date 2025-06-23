@@ -237,5 +237,6 @@ socket.addEventListener('message', (event) => {
         console.log(`unknown incoming messsage: [${incoming}]`);
         break;
     }
+      console.log(data)
   }
 });
