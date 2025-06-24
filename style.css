@@ -195,3 +195,18 @@ a-scene {
   left: 50%;
   transform: translate(-50%, -40%);
 }
+
+#playerCountDisplay {
+  position: absolute;
+  top: 70px;
+  right: 30px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #ffcc00;
+  z-index: 10;
+  border: 2px solid #ffcc00;
+  font-family: sans-serif;
+}
