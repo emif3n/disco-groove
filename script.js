@@ -7,6 +7,8 @@ const webRoomsWebSocketServerAddr = 'https://nosch.uber.space/web-rooms/';
 let clientId = null; // client ID sent by web-rooms server when calling 'enter-room'
 let clientCount = 0; // number of clients connected to the same room
 
+const playerCountDisplay = document.getElementById('playerCountDisplay');
+
 
 const tileColors = [
   "#ff6666", "#ffcc66", "#66ff66", "#66ffff",
@@ -35,9 +37,9 @@ const melodies = {
   medium: [[0, 2, 4, 6, 4], [3, 5, 7, 5, 3], [2, 4, 6, 8, 6, 4]],
   hard: [
     [0, 3, 5, 8, 10, 12, 14],
-    [1, 4, 6, 9, 11, 13, 15, 13, 11],
-    [2, 4, 7, 9, 11, 14, 12, 10, 8]
-  ]
+    [1, 4, 6, 9, 11, 13, 15],
+    [2, 4, 7, 9, 11, 14, 12]
+  ],
 };
 
 const levels = ["easy", "medium", "hard"];
@@ -172,6 +174,7 @@ function sendRequest(...message) {
   console.log("Hi ich funktionier")
 }
 
+
 // listen to opening websocket connections
 socket.addEventListener('open', (event) => {
   sendRequest('*enter-room*', 'disco-groove');
@@ -196,19 +199,19 @@ socket.addEventListener('message', (event) => {
     const selector = incoming[0];
 
     // dispatch incomming messages
-    switch (selector) {
-      // responds to '*enter-room*'
-      case '*client-id*':
-        clientId = incoming[1];
-        infoDisplay.innerHTML = `#${clientId}/${clientCount}`;
-        // start();
-        break;
 
-      // responds to '*subscribe-client-count*'
-      case '*client-count*':
-        clientCount = incoming[1];
-        infoDisplay.innerHTML = `#${clientId}/${clientCount}`;
-        break;
+switch (selector) {
+  // responds to '*client-count*'
+  case '*client-count*':
+    clientCount = incoming[1];
+    infoDisplay.innerHTML = `#${clientId}/${clientCount}`;
+    
+    // Spieleranzahl-Anzeige aktualisieren
+    const playerCountDisplay = document.getElementById('playerCountDisplay');
+    if (playerCountDisplay) {
+      playerCountDisplay.textContent = `Spieler online: ${clientCount}`;
+    }
+    break;
 
       case '*client-enter*':
         const enterId = incoming[1];
@@ -240,5 +243,6 @@ socket.addEventListener('message', (event) => {
     
     }
         console.log(data)
+        '*get-client-count*'
   }
 });
