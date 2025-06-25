@@ -243,7 +243,6 @@ switch (selector) {
     
     }
         console.log(data)
-        '*get-client-count*'
   }
 });
 
