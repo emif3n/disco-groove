@@ -9,6 +9,9 @@ let clientCount = 0; // number of clients connected to the same room
 
 const playerCountDisplay = document.getElementById('playerCountDisplay');
 
+const leaderboardDisplay = document.getElementById("leaderboardDisplay");
+
+let playerName = '';
 
 const tileColors = [
   "#ff6666", "#ffcc66", "#66ff66", "#66ffff",
@@ -108,6 +111,7 @@ function checkUserInput() {
     acceptingInput = false;
 
     score += 10;
+    sendRequest("update-score", score);
     scoreDisplay.textContent = `Punkte: ${score}`;
 
     setTimeout(() => {
@@ -154,11 +158,23 @@ function createTiles() {
 }
 
 startBtn.addEventListener("click", () => {
+  const name = document.getElementById("nameInput").value.trim();
+  if (name.length === 0) {
+    alert("Bitte gib deinen Namen ein.");
+    return;
+  }
+
+  // Name speichern & senden
+  playerName = name;
+  sendRequest("set-name", name);
+
+  // Spiel starten
   currentLevel = 0;
   score = 0;
   scoreDisplay.textContent = `Punkte: ${score}`;
   startNextLevel();
 });
+
 
 createTiles();
 
@@ -197,7 +213,6 @@ socket.addEventListener('message', (event) => {
   if (data.length > 0) {
     const incoming = JSON.parse(data);
     const selector = incoming[0];
-
     // dispatch incomming messages
 
 switch (selector) {
@@ -227,9 +242,20 @@ switch (selector) {
       case 'hello-there':
         const otherId = incoming[1];
         console.log(`client #${otherId} says 'Hello there!'`);
-
-        highlightText(titleDisplay); // highlight screen by others (function defined above)
         break;
+      case "player-list":
+  const players = incoming[1];
+
+  // Optional: sortieren nach Score
+  players.sort((a, b) => b.score - a.score);
+
+  const text = players.map(p =>
+    `${p.name || 'Anonym'}: ${p.score}`
+  ).join("\n");
+
+  leaderboardDisplay.textContent = `Spieler:\n${text}`;
+  break;
+
 
       case '*error*': {
         const message = incoming[1];
