@@ -7,7 +7,11 @@
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="script.js"defer ></script>
     <link rel="stylesheet" href="style.css" />
+
   </head>
+
+  <input id="nameInput" type="text" placeholder="Dein Name" maxlength="20" />
+
   <body>
     <div id="overlay">
       <h1>Disco Groove</h1>
@@ -15,15 +19,18 @@
       <button id="startBtn">Spiel starten</button>
       <div id="status"></div>
     </div>
+
     <!-- Neue Score-Anzeige oben rechts -->
     <div id="scoreDisplayFixed">Punkte: 0</div>
-    
-    <div id="playerCountDisplay">Spieler online: 0</div>
-
-    <div id="info-display"></div>
+<div id="playerCountDisplay">Spieler online: 0</div>
 
 
- <a-scene cursor="rayOrigin: mouse" background="color: #111">
+      <div id="info-display"></div>
+      <div id="leaderboardDisplay"></div>
+
+
+
+    <a-scene cursor="rayOrigin: mouse" background="color: #111">
       <a-entity position="0 4 8" rotation="-45 0 0">
         <a-camera></a-camera>
       </a-entity>
