@@ -11,3 +11,5 @@ Funktionen:
 
 Erwünscht:
 - Eine Anzeige der Scores jedes Mitspieler, die live übertragen wird
+
+Projekt von Liliane Ebbecke und Emilie Fenslein
