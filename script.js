@@ -246,3 +246,76 @@ switch (selector) {
   }
 });
 
+function createDiscoLights(count = 20) {
+  for (let i = 0; i < count; i++) {
+    const light = document.createElement("a-sphere");
+    const x = (Math.random() - 0.5) * 10;
+    const y = Math.random() * 4 + 1;
+    const z = (Math.random() - 0.5) * 10;
+    
+
+    light.setAttribute("position", `${x} ${y} ${z}`);
+    light.setAttribute("radius", "0.1");
+    light.setAttribute("color", getRandomColor());
+    light.setAttribute("opacity", "0.8");
+    light.setAttribute("animation__move", {
+      property: "position",
+      to: `${x + (Math.random() - 0.5)} ${y + Math.random() * 1.5} ${z + (Math.random() - 0.5)}`,
+      dur: 2000 + Math.random() * 3000,
+      dir: "alternate",
+      loop: true,
+      easing: "easeInOutSine",
+    });
+    light.setAttribute("animation__color", {
+      property: "color",
+      to: getRandomColor(),
+      dur: 1000 + Math.random() * 2000,
+      dir: "alternate",
+      loop: true,
+    });
+    
+
+    scene.appendChild(light);
+  }
+}
+
+function getRandomColor() {
+  const colors = ["#ff66cc", "#66ccff", "#ffff66", "#ff9966", "#cc66ff", "#00ffcc"];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+
+createDiscoLights();
+
+let isDarkMode = true;
+
+document.addEventListener("keydown", (e) => {
+  if (e.key.toLowerCase() === "t") {
+    toggleSceneMode();
+  }
+});
+
+function toggleSceneMode() {
+  const scene = document.querySelector("a-scene");
+  const ground = scene.querySelector("a-plane");
+  const overlay = document.getElementById("overlay");
+  const infoDisplay = document.getElementById("info-display");
+
+  if (isDarkMode) {
+    // Wechsel zu Light Mode
+    scene.setAttribute("background", "color: #eef");
+    if (ground) ground.setAttribute("color", "#ccc");
+
+    overlay.style.color = "#000";
+    infoDisplay.style.color = "#000";
+
+  } else {
+    // Zurück zu Dark Mode
+    scene.setAttribute("background", "color: #111");
+    if (ground) ground.setAttribute("color", "#222");
+
+    overlay.style.color = "#fff";
+    infoDisplay.style.color = "#fff";
+  }
+
+  isDarkMode = !isDarkMode;
+}
